@@ -48,7 +48,7 @@ export default function Home() {
   // const dummyCompleteOrderData = [
   //   {
   //     id: 1,
-  //     name: 'Michael Stefan',
+  //     name: 'Michael Stefans',
   //     profileStatus: 'Approved',
   //     ordersCompleted: 17,
   //     totalEarnings: 534,

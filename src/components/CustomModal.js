@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, View, Text, Pressable, TouchableOpacity } from 'react-native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome6';
 import Gradient from './Gradient';
-const CustomModal = ({ visible, error, onClose, content }) => {
+const CustomModal = ({ visible, error, onClose, content, success }) => {
     return (
         <Modal
             transparent={true}
@@ -14,25 +14,32 @@ const CustomModal = ({ visible, error, onClose, content }) => {
             }}
         >
             <View style={styles.modalBackground}>
-            <View style={styles.modal}>
+                <View style={styles.modal}>
                     {content ? content : (
                         <>
-                           <View style={styles.modalView}>
-                            <View style={styles.iconContainer}>
-                                <FontAwesomeIcon name="exclamation" size={20} color={'#fff'} />
-                            </View>
-                            <Text style={styles.modalText}>{error}</Text>
-                            <View style={styles.buttonContainer}>
-                                <TouchableOpacity onPress={() => {
-                                    onClose();
-                                }}>
-                                    <Gradient
-                                        gradientUse={styles.okButton}
-                                    >
-                                        <Text style={styles.buttonText}>Ok</Text>
-                                    </Gradient>
-                                </TouchableOpacity>
-                            </View>
+                            <View style={styles.modalView}>
+                                {success ?
+                                    (<View style={styles.iconContainer}>
+                                        <FontAwesomeIcon name="check" size={20} color={'#fff'} />
+                                    </View>) :
+                                    (<View style={styles.iconContainer}>
+                                        <FontAwesomeIcon name="exclamation" size={20} color={'#fff'} />
+                                    </View>)
+                                }
+
+                                <Text style={styles.modalText}>{error ? `${error}` : success ? `${success}` : ''}</Text>
+
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity onPress={() => {
+                                        onClose();
+                                    }}>
+                                        <Gradient
+                                            gradientUse={styles.okButton}
+                                        >
+                                            <Text style={styles.buttonText}>Ok</Text>
+                                        </Gradient>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </>
                     )}
@@ -51,7 +58,7 @@ const styles = {
         justifyContent: 'space-around',
         backgroundColor: '#00000040',
     },
-    modal:{
+    modal: {
         backgroundColor: '#FFFFFF',
         borderRadius: 10,
         justifyContent: 'center',

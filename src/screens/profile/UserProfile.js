@@ -9,10 +9,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppContext } from '../../context/Context';
+import CustomModal from '../../components/CustomModal';
+import Loader from '../../components/Loader';
 
 export default function UserProfile() {
     const navigation = useNavigation();
     const { userData, setUserDate } = useAppContext();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false)
     useLayoutEffect(() => {
         navigation.setOptions({
             headerLeft: (props) => (
@@ -60,6 +65,7 @@ export default function UserProfile() {
     }, []);
     const updateData = async () => {
         try {
+            setLoading(true);
             const token = await AsyncStorage.getItem('userToken');
             console.log(token);
             const formData = new FormData();
@@ -79,9 +85,14 @@ export default function UserProfile() {
             });
             updateImage();
             fetchData();
+            setShowModal(true);
             console.log(response.data)
+            setError(response.data.message);
         } catch (error) {
             console.error('Error updating data:', error);
+        }
+        finally{
+            setLoading(false);
         }
     };
     const [selectedImage, setSelectedImage] = useState({ uri: null });
@@ -132,8 +143,13 @@ export default function UserProfile() {
 
         }
     };
+    const closeModal = () => {
+        setShowModal(false);
+    };
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
+            <Loader loading={loading} />
+            <CustomModal visible={showModal} success={error} onClose={closeModal} />
             <SafeAreaView style={styles.container}>
                 <StatusBar
                     barStyle="light-content"
@@ -173,7 +189,7 @@ export default function UserProfile() {
                         style={styles.halfInput}
                         placeholder="Last Name"
                         placeholderTextColor="#292929"
-                        value={userData?.last_name}
+                        defaultValue={userData?.last_name}
                         onChange={(e) => setLastName(e.nativeEvent.text)}
                     />
                 </View>

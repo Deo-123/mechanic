@@ -145,7 +145,7 @@ export default function Home() {
             </View>
             <View style={{ flex: 1, marginLeft: 15, }}>
               <Text style={styles.title}>{userData?.first_name}{" "}{userData?.last_name}</Text>
-              <Text style={styles.text}>Profile Status: <Text style={{ color: '#17A500' }}>Approved</Text></Text>
+              <Text style={styles.text}>Profile Status: <Text style={{ color: '#17A500' }}>{userData?.profile_status}</Text></Text>
               <Text style={styles.text}>Jobs completed: <Text style={{ color: '#C63A2E' }}>{userData?.completed_jobs}</Text> </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 8 }}>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 15,
-    paddingTop: 80,
+    paddingTop: 90,
   },
   Image: {
     resizeMode: 'contain',

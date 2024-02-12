@@ -24,34 +24,38 @@ export default function ProductDetail() {
     const { id } = route.params;
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [showModal, setShowModal] = useState(false)
     const [orderDetail, setOrderDetail] = useState([]);
 
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const token = await AsyncStorage.getItem('userToken');
+            const response = await axios.get(`https://custom3.mystagingserver.site/certifires/public/api/view-request-inspection/${id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            setLoading(false);
+            setOrderDetail(response.data.data);
+            console.log(response.data.data);
+        } catch (error) {
+            setLoading(false);
+            console.error('Error:', error.message);
+        }
+    };
     useEffect(() => {
         console.log(id);
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const token = await AsyncStorage.getItem('userToken');
-                const response = await axios.get(`https://custom3.mystagingserver.site/certifires/public/api/view-request-inspection/${id}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-                setLoading(false);
-                setOrderDetail(response.data.data);
-                console.log(response.data.data);
-            } catch (error) {
-                setLoading(false);
-                console.error('Error:', error.message);
-            }
-        };
         fetchData();
     }, [id]);
 
     const closeModal = () => {
         setShowModal(false);
+        setShowSuccessModal(false);
     };
     const openModal = () => {
         setShowModal(true);
@@ -92,7 +96,7 @@ export default function ProductDetail() {
         </View>
     );
     const handleOrder = async () => {
-        console.log("jjkj", id);
+        // console.log("id", id);
         try {
             setLoading(true);
             const token = await AsyncStorage.getItem('userToken');
@@ -107,6 +111,9 @@ export default function ProductDetail() {
                 }
             );
             setLoading(false);
+            setSuccess(response.data.msg)
+            fetchData();
+            setShowSuccessModal(true);
             console.log(response.data);
         } catch (error) {
             setLoading(false);
@@ -117,6 +124,7 @@ export default function ProductDetail() {
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
             <Loader loading={loading} />
+            <CustomModal visible={showSuccessModal} onClose={closeModal} success={success}/>
             <CustomModal visible={showModal} onClose={closeModal} content={<ProductBuy />} />
             <SafeAreaView style={styles.container}>
                 <View style={styles.profile}>
@@ -228,7 +236,7 @@ export default function ProductDetail() {
                                     <Text style={{ marginTop: 6, color: '#1D1D1D', fontFamily: 'Poppins-Regular', fontSize: 12, marginLeft: 10, flex: 1, }}>{service?.name}</Text>
                                 </View>
                             ))}
-                            
+
                         </View>
                     </ScrollView>
 

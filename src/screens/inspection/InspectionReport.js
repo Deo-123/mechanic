@@ -127,9 +127,14 @@ const InspectionReport = () => {
                                 </RadioButton.Group>
                             </View>
                         ))}
-                   
+                     <TouchableOpacity onPress={() => handleQuestionClick()}>
+                            <Gradient gradientUse={styles.handleButton}>
+                                <Text style={{ color: '#fff' }}>Submit</Text>
+                            </Gradient>
+                        </TouchableOpacity>
                     </View>
                 );
+                
             }
         }
         return null;
@@ -152,11 +157,11 @@ const InspectionReport = () => {
                         </TouchableOpacity>
                     ))}
                     {renderForm()}
-                         <TouchableOpacity onPress={submitFormToAPI}>
+                         {/* <TouchableOpacity onPress={submitFormToAPI}>
                             <Gradient gradientUse={styles.handleButton}>
                                 <Text style={{ color: '#fff' }}>Submit</Text>
                             </Gradient>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                 </View>
             </SafeAreaView>
         </ScrollView>

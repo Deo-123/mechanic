@@ -2,8 +2,6 @@ import { View, Text, StyleSheet, Image, SafeAreaView, ScrollView, TouchableOpaci
 import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Swiper from 'react-native-swiper';
-import bnImage from '../../../assets/images/banner.png';
-import user1 from '../../../assets/images/user1.jpg';
 import carRepairIcon from '../../../assets/images/car-repair-icon.png';
 import BannerSlider from '../../components/BannerSlider';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -26,12 +24,12 @@ export default function ProductDetail() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false)
-    const [showModal, setShowModal] = useState(false)
     const [orderDetail, setOrderDetail] = useState([]);
 
 
     const fetchData = async () => {
         try {
+            // console.log(id);
             setLoading(true);
             const token = await AsyncStorage.getItem('userToken');
             const response = await axios.get(`https://custom3.mystagingserver.site/certifires/public/api/view-request-inspection/${id}`, {
@@ -54,49 +52,10 @@ export default function ProductDetail() {
     }, [id]);
 
     const closeModal = () => {
-        setShowModal(false);
         setShowSuccessModal(false);
     };
-    const openModal = () => {
-        setShowModal(true);
-    };
-    const ProductBuy = () => (
-        <View style={{ padding: 8 }}>
-            <Text style={styles.modelHeading}>Seller Details</Text>
-            <View style={{ marginBottom: 10 }}>
-                <Text style={styles.modelLabel}>Seller Name</Text>
-                <Text style={styles.modelText}>Michael Williamson</Text>
-            </View>
-            <View style={{ marginBottom: 10 }}>
-                <Text style={styles.modelLabel}>Email</Text>
-                <Text style={styles.modelText}>Michael91W@gmail.com</Text>
-            </View>
 
-            <View style={{ marginBottom: 10 }}>
-                <Text style={styles.modelLabel}>Phone No</Text>
-                <Text style={styles.modelText}>+1 4545 5455</Text>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 }}>
-                <TouchableOpacity >
-                    <Gradient gradientUse={styles.modelButton}>
-                        <Text style={{ color: 'white', fontSize: 14, fontFamily: 'Poppins-Regular', fontWeight: '700' }}>Chat</Text>
-                    </Gradient>
-                </TouchableOpacity>
-                <TouchableOpacity >
-                    <Gradient gradientUse={styles.modelButton}>
-                        <Text style={{ color: 'white', fontSize: 14, fontFamily: 'Poppins-Regular', fontWeight: '700' }}>Call</Text>
-                    </Gradient>
-                </TouchableOpacity>
-
-            </View>
-            <TouchableOpacity onPress={closeModal}>
-                <Text style={styles.modelCancel}>Cancel</Text>
-            </TouchableOpacity>
-
-        </View>
-    );
     const handleOrder = async () => {
-        // console.log("id", id);
         try {
             setLoading(true);
             const token = await AsyncStorage.getItem('userToken');
@@ -111,7 +70,7 @@ export default function ProductDetail() {
                 }
             );
             setLoading(false);
-            setSuccess(response.data.msg)
+            setSuccess("Accepted the job successfully")
             fetchData();
             setShowSuccessModal(true);
             console.log(response.data);
@@ -124,8 +83,7 @@ export default function ProductDetail() {
     return (
         <ScrollView showsVerticalScrollIndicator={false}>
             <Loader loading={loading} />
-            <CustomModal visible={showSuccessModal} onClose={closeModal} success={success}/>
-            <CustomModal visible={showModal} onClose={closeModal} content={<ProductBuy />} />
+            <CustomModal visible={showSuccessModal} onClose={closeModal} success={success} />
             <SafeAreaView style={styles.container}>
                 <View style={styles.profile}>
                     <View>
@@ -152,7 +110,6 @@ export default function ProductDetail() {
                         <Image source={{ uri: `https://custom3.mystagingserver.site/certifires/public/${orderDetail?.car_detail?.image}` }} style={styles.image} />
                     </View>
                     {/* ))} */}
-
                 </Swiper>
                 <View style={styles.proDetail}>
                     <Text style={styles.proTitle}>{orderDetail?.car_detail?.name}</Text>
@@ -253,42 +210,34 @@ export default function ProductDetail() {
                         </TouchableOpacity>
                     </View>
                 </View>
-                {/* <Text style={styles.heading}>Services</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
-                        {Array.isArray(orderDetail?.services) && orderDetail?.services.map((service, index) => (
-                            <View key={index} style={{ height: 60, backgroundColor: '#F4F4F4', borderRadius: 10, justifyContent: 'center', alignItems: 'center', width: 150, flexDirection: 'row', padding: 8, marginRight: 10, }}>
-                                <Image source={carRepairIcon} style={{ width: 25, height: 25 }} />
-                                <Text style={{ marginTop: 6, color: '#1D1D1D', fontFamily: 'Poppins-Regular', fontSize: 12, marginLeft: 10, flex: 1, }}>{service?.name}</Text>
-                            </View>
-                        ))}
-                    </View>
-                </ScrollView> */}
-
-
-                {orderDetail?.status === "in progress" ?
-                    (<TouchableOpacity onPress={() => navigation.navigate('inspection-report')}>
-                        <Gradient gradientUse={styles.handleButton}>
-                            <Text style={{ color: 'white', fontSize: 14, fontFamily: 'Poppins-Regular', fontWeight: '700' }}>Create inspection report</Text>
-                        </Gradient>
-                    </TouchableOpacity>) : (
+                {orderDetail?.status !== "complete" ? (
+                    orderDetail?.status === "in progress" ? (
+                        <TouchableOpacity onPress={() => navigation.navigate('inspection-report', { carId: orderDetail?.car_id , carDetail:orderDetail})}>
+                            <Gradient gradientUse={styles.handleButton}>
+                                <Text style={{ color: 'white', fontSize: 14, fontFamily: 'Poppins-Regular', fontWeight: '700' }}>Create inspection report</Text>
+                            </Gradient>
+                        </TouchableOpacity>
+                    ) : (
                         <View style={{
-                            flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between', borderRadius: 100,
+                            flexDirection: 'row',
+                            width: '100%',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            borderRadius: 100,
                             padding: 8,
                             marginTop: 15,
                             marginBottom: 15,
                             backgroundColor: '#F4F4F4'
-
                         }}>
                             <Text style={styles.price}>Order amount: <Text>${orderDetail?.amount}</Text></Text>
-                            <TouchableOpacity onPress={handleOrder} >
+                            <TouchableOpacity onPress={handleOrder}>
                                 <Gradient gradientUse={styles.button}>
                                     <Text style={{ color: 'white', fontSize: 14, fontFamily: 'Poppins-Regular', fontWeight: '700' }}>Accept</Text>
                                 </Gradient>
                             </TouchableOpacity>
                         </View>
                     )
-                }
+                ) : null}
             </SafeAreaView>
         </ScrollView >
     )

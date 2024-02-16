@@ -1,71 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, Text, Button, TouchableOpacity, StyleSheet, SafeAreaView, TextInput, ScrollView } from 'react-native';
 import CustomInput from '../../components/CustomInput';
 import CustomSelectList from '../../components/CustomSelectList';
 import Gradient from '../../components/Gradient';
 import { RadioButton } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // You may need to install this library
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import CustomModal from '../../components/CustomModal';
+import Loader from '../../components/Loader';
 
 
 const InspectionReport = () => {
-   
+    const route = useRoute()
+    const { carId  , carDetail} = route.params;
+    const navigation = useNavigation();
+    const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [success, setSuccess] = useState('');
     const [selectedQuestion, setSelectedQuestion] = useState(null);
     const [checked, setChecked] = useState({});
-    const [mainQuestion, setMainQuestion] = useState([
-        {
-            id: 1,
-            text: "Core Support - Accident Checklist",
-            questions: [
-                { id: 1, text: "Radiator Core Support", options: [{ id: 1, status: "Non-Accidented" }, { id: 2, status: "Accidented" }] },
-                { id: 2, text: "Right Strut Tower Apron", options: [{ id: 3, status: "Non-Accidented" }, { id: 4, status: "Accidented" }] },
-                { id: 3, text: "Left Strut Tower Apron", options: [{ id: 5, status: "Non-Accidented" }, { id: 6, status: "Accidented" }] },
-                { id: 4, text: "Right Front Rail", options: [{ id: 7, status: "Non-Accidented" }, { id: 8, status: "Accidented" }] },
-                { id: 5, text: "Left Front Rail", options: [{ id: 9, status: "Non-Accidented" }, { id: 10, status: "Accidented" }] },
-                { id: 6, text: "Cowl Panel Firewall", options: [{ id: 11, status: "Non-Accidented" }, { id: 12, status: "Accidented" }] },
-                { id: 7, text: "Right A Pillar", options: [{ id: 13, status: "Non-Accidented" }, { id: 14, status: "Accidented" }] },
-                { id: 8, text: "Left A Pillar", options: [{ id: 15, status: "Non-Accidented" }, { id: 16, status: "Accidented" }] },
-                { id: 9, text: "Right B Pillar", options: [{ id: 17, status: "Non-Accidented" }, { id: 18, status: "Accidented" }] },
-                { id: 10, text: "Left B Pillar", options: [{ id: 19, status: "Non-Accidented" }, { id: 20, status: "Accidented" }] },
-                { id: 11, text: "Right C Pillar", options: [{ id: 21, status: "Non-Accidented" }, { id: 22, status: "Accidented" }] },
-                { id: 12, text: "Left C Pillar", options: [{ id: 23, status: "Non-Accidented" }, { id: 24, status: "Accidented" }] },
-                { id: 13, text: "Boot Floor", options: [{ id: 25, status: "Non-Accidented" }, { id: 26, status: "Accidented" }] },
-                { id: 14, text: "Boot Lock Pillar", options: [{ id: 27, status: "Non-Accidented" }, { id: 28, status: "Accidented" }] },
-                { id: 15, text: "Front Sub Frame", options: [{ id: 29, status: "Non-Accidented" }, { id: 30, status: "Accidented" }] },
-                { id: 16, text: "Rear Sub Frame", options: [{ id: 31, status: "Non-Accidented" }, { id: 32, status: "Accidented" }] }
-            ],
-        },
-        {
-            id: 2,
-            text: "Engine - transmission - clutch",
-            questions: [
-                { id: 1, text: "Engine Oil Level", options: [{ id: 1, status: "Sludge" }, { id: 2, status: "Clean" }] },
-                { id: 2, text: "Engine Oil Leakage", options: [{ id: 3, status: "Leakage" }, { id: 4, status: "No Leakage" }] },
-            ],
-        },
-        {
-            id: 3,
-            text: "Engine - transmission - clutch",
-            questions: [
-                { id: 1, text: "Engine Oil Level", options: [{ id: 1, status: "Sludge" }, { id: 2, status: "Clean" }] },
-                { id: 2, text: "Engine Oil Leakage", options: [{ id: 3, status: "Leakage" }, { id: 4, status: "No Leakage" }] },
-            ],
-        },{
-            id: 4,
-            text: "Engine - transmission - clutch",
-            questions: [
-                { id: 1, text: "Engine Oil Level", options: [{ id: 1, status: "Sludge" }, { id: 2, status: "Clean" }] },
-                { id: 2, text: "Engine Oil Leakage", options: [{ id: 3, status: "Leakage" }, { id: 4, status: "No Leakage" }] },
-            ],
-        },{
-            id: 5,
-            text: "Engine - transmission - clutch",
-            questions: [
-                { id: 1, text: "Engine Oil Level", options: [{ id: 1, status: "Sludge" }, { id: 2, status: "Clean" }] },
-                { id: 2, text: "Engine Oil Leakage", options: [{ id: 3, status: "Leakage" }, { id: 4, status: "No Leakage" }] },
-            ],
-        }
-    ]);
+    const [category, setCategory] = useState([]);
+    const [comment, setComment] = useState('');
 
+    const closeModal = () => {
+        setShowModal(false);
+        navigation.navigate('drawer');
+
+    };
+    const openModal = (id) => {
+        setShowModal(true);
+    };
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: (props) => (
+                <View {...props} >
+                    <Text style={styles.headerTitle}>{carDetail?.car_detail?.name}</Text>
+                </View>
+            )
+        });
+    }, [navigation, , carDetail]);
     const handleQuestionClick = (questionId) => {
         setSelectedQuestion(questionId);
     };
@@ -73,111 +48,357 @@ const InspectionReport = () => {
         setChecked((prevChecked) => ({ ...prevChecked, [questionId]: option }));
         console.log(`Selected option for Question ${questionId}: ${option}`);
     };
-    const submitFormToAPI = async () => {
-        // Extract selected questions and options
-        const selectedSection = mainQuestion.find((section) => section.id === selectedQuestion);
-        const selectedOptions = selectedSection.questions.map((question) => ({
-            questionId: question.id,
-            selectedOption: checked[question.id],
-             
-        }));
-        console.log('selectedOptions' ,selectedOptions);
 
-        // try {
-        //     // Make a POST request to your API endpoint
-        //     const response = await axios.post('YOUR_API_ENDPOINT', {
-        //         selectedOptions,
-        //     });
-
-        //     // Handle the API response if needed
-        //     console.log('API Response:', response.data);
-        // } catch (error) {
-        //     // Handle errors
-        //     console.error('API Error:', error);
-        // }
-    };
-    
-    const renderForm = () => {
+    const [categoryRatings, setCategoryRatings] = useState({});
+    // Example of handling ratings separately for categories and subcategories
+    const handleRating = (value) => {
         if (selectedQuestion !== null) {
-            const selectedSection = mainQuestion.find((section) => section.id === selectedQuestion);
+            const selectedSection = category.find((section) => section.id === selectedQuestion);
+
             if (selectedSection) {
-                return (
-                    <View  style={{ marginVertical:20}}>
-                        {selectedSection.questions.map((question, index) => (
-                            <View key={question.id}>
-                                <Text style={styles.subQuestion}>{`${index + 1}. ${question.text}`}</Text>
-                                <RadioButton.Group
-                                    onValueChange={(value) => handleOptionChange(question.id, value)}
-                                    value={checked[question.id]}
-                                >
-                                    <View style={styles.radioGroup}>
-                                        {question.options.map((option) => (
-                                            <RadioButton.Item
-                                                key={option.id}
-                                                label={option.status}
-                                                value={option.id}
-                                                status={checked[question.id] === option.status ? 'checked' : 'unchecked'}
-                                                labelStyle={styles.labelSmall}
-                                                uncheckedColor="#1D1D1D"
-                                                color="#C63A2E"
-                                                style={{ marginVertical: -8, }} 
-                                            />
-                                        ))}
-                                    </View>
-                                </RadioButton.Group>
-                            </View>
-                        ))}
-                     <TouchableOpacity onPress={() => handleQuestionClick()}>
-                            <Gradient gradientUse={styles.handleButton}>
-                                <Text style={{ color: '#fff' }}>Submit</Text>
-                            </Gradient>
-                        </TouchableOpacity>
-                    </View>
-                );
-                
+                const categoryKey = selectedSection.id.toString();
+
+                setCategoryRatings((prevRatings) => ({
+                    ...prevRatings,
+                    [categoryKey]: value,
+                }));
             }
         }
-        return null;
     };
 
+
+
+
+    const handleFormSubmit = async () => {
+        // Create an object to store the responses
+        const responses = Object.keys(checked).map((questionId) => {
+            let category_id = null;
+            let subcategory_id = null;
+            let category_score = null;
+
+            // Find the category containing the question
+            const foundCategory = category.find((section) => {
+                if (section.questions) {
+                    const foundQuestion = section.questions.find((q) => q.id == questionId);
+                    if (foundQuestion) {
+                        category_id = section.id.toString();
+                        category_score = categoryRatings[category_id] || 0;
+                        return true;
+                    }
+                }
+                if (section.subcategories) {
+                    const foundSubcategory = section.subcategories.find((sub) => {
+                        const foundQuestion = sub.questions.find((q) => q.id == questionId);
+                        if (foundQuestion) {
+                            category_id = section.id.toString();
+                            subcategory_id = sub.id.toString();
+                            category_score = categoryRatings[category_id] || 0;
+                            return true;
+                        }
+                    });
+                    if (foundSubcategory) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            return {
+                category_id,
+                subcategory_id,
+                question_id: questionId,
+                option_id: checked[questionId].toString(),
+
+                category_score,
+            };
+        });
+
+        console.log(responses);
+
+
+        try {
+            // console.log(responses);
+            setLoading(true);
+            const token = await AsyncStorage.getItem('userToken');
+            const res = await axios.post(
+                'https://custom3.mystagingserver.site/certifires/public/api/mechanic/report-inspection-complete',
+                {
+                    report: responses,
+                    car_id: carId,
+                    comment: comment,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    }
+                }
+            );
+            setSuccess("Inspection successful");
+            openModal();
+            console.log('Response:', res.data);
+        } catch (error) {
+            console.error('Error Submit Report:', error.response ? error.response.data : error.message);
+        }
+        finally{
+            setLoading(false);
+        }
+    };
+
+
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const token = await AsyncStorage.getItem('userToken');
+            const response = await axios.get('https://custom3.mystagingserver.site/certifires/public/api/mechanic/report-inspection', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            setCategory(response.data.data);
+            // console.log(response.data.data);
+        } catch (error) {
+            console.error('Error fetching data:', error.message);
+        }
+        finally{
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const renderForm = () => {
+        let categoryKey = null;
+        if (selectedQuestion !== null) {
+            const selectedSection = category.find((section) => section.id === selectedQuestion);
+
+            if (selectedSection) {
+                categoryKey = selectedSection.id.toString();
+
+                if (selectedSection.subcategories && selectedSection.subcategories.length > 0) {
+                    return (
+                        <View style={{ marginVertical: 10 }}>
+                            {selectedSection.subcategories.map((subcategory) => (
+                                <View key={subcategory.id} style={{ marginVertical: 10 }}>
+                                    <Text style={styles.subHeading}>{subcategory.text}</Text>
+                                    {subcategory.questions.map((question, index) => (
+                                        <View key={question.id}>
+                                            <Text style={styles.question}>{`${index + 1}. ${question.text}`}</Text>
+                                            <RadioButton.Group
+                                                onValueChange={(value) => handleOptionChange(question.id, value)}
+                                                value={checked[question.id]}
+                                            >
+                                                <View style={styles.radioGroup}>
+                                                    {question.options.map((option) => (
+                                                        <RadioButton.Item
+                                                            key={option.id}
+                                                            label={option.text}
+                                                            value={option.id}
+                                                            text={checked[question.id] === option.id ? 'checked' : 'unchecked'}
+                                                            labelStyle={styles.labelSmall}
+                                                            uncheckedColor="#1D1D1D"
+                                                            color="#C63A2E"
+                                                            style={{ marginVertical: -8 }}
+                                                        />
+                                                    ))}
+                                                </View>
+                                            </RadioButton.Group>
+                                        </View>
+                                    ))}
+
+                                </View>
+                            ))}
+                            <View style={{ marginVertical: 10 }}>
+                                <Text style={styles.heading}>Inspection <Text style={{ color: '#C63A2E' }}>rate</Text></Text>
+                                <View style={styles.ratingContainer}>
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+                                        <TouchableOpacity
+                                            key={value}
+                                            style={[
+                                                styles.ratingItem,
+                                                { backgroundColor: categoryRatings[categoryKey] && categoryRatings[categoryKey] >= value ? '#C63A2E' : 'gray' },
+                                            ]}
+                                            onPress={() => handleRating(value)}
+                                        >
+                                            <Text style={styles.ratingText}>{value}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                                {/* <Text style={styles.selectedRating}>Selected Rating: {categoryRatings[categoryKey]}</Text> */}
+                            </View>
+                        </View>
+                    );
+                } else {
+                    return (
+                        <View style={{ marginVertical: 10 }}>
+                            {selectedSection.questions.map((question, index) => (
+                                <View key={question.id}>
+                                    <Text style={styles.question}>{`${index + 1}. ${question.text}`}</Text>
+                                    <RadioButton.Group
+                                        onValueChange={(value) => handleOptionChange(question.id, value)}
+                                        value={checked[question.id]}
+                                    >
+                                        <View style={styles.radioGroup}>
+                                            {question.options.map((option) => (
+                                                <RadioButton.Item
+                                                    key={option.id}
+                                                    label={option.text}
+                                                    value={option.id}
+                                                    text={checked[question.id] === option.id ? 'checked' : 'unchecked'}
+                                                    labelStyle={styles.labelSmall}
+                                                    uncheckedColor="#1D1D1D"
+                                                    color="#C63A2E"
+                                                    style={{ marginVertical: -8 }}
+                                                />
+                                            ))}
+                                        </View>
+                                    </RadioButton.Group>
+                                </View>
+                            ))}
+                            <View style={{ marginVertical: 10 }}>
+                                <Text style={styles.heading}>Inspection <Text style={{ color: '#C63A2E' }}>rate</Text></Text>
+                                <View style={styles.ratingContainer}>
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
+                                        <TouchableOpacity
+                                            key={value}
+                                            style={[
+                                                styles.ratingItem,
+                                                { backgroundColor: categoryRatings[categoryKey] && categoryRatings[categoryKey] >= value ? '#C63A2E' : 'gray' },
+                                            ]}
+                                            onPress={() => handleRating(value)}
+                                        >
+                                            <Text style={styles.ratingText}>{value}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                                {/* <Text style={styles.selectedRating}>Selected Rating: {categoryRatings[categoryKey]}</Text> */}
+                            </View>
+                        </View>
+                    );
+                }
+            }
+        }
+
+        return (
+            null
+        );
+    }
+
+
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: '#fff', }}>
+               <Loader loading={loading} />
+               <CustomModal visible={showModal} onClose={closeModal} success={success} />
             <SafeAreaView style={styles.container}>
-                <View>
-                    {/* <Text style={styles.heading}>Inspection Report</Text> */}
-                    {mainQuestion.map((question) => (
+                <Text style={styles.heading}>Digital <Text style={{ color: '#C63A2E' }}>Inspection Report</Text></Text>
+                <Text style={styles.subHeading}>Inspection categories</Text>
+                {category.map((question, index) => (
+                    <View key={question.id}>
                         <TouchableOpacity
-                            key={question.id}
-                            // style={styles.button}
-                            onPress={() => handleQuestionClick(question.id)}
+
+                            onPress={() => handleQuestionClick(question.id === selectedQuestion ? null : question.id)}
                         >
                             <Gradient gradientUse={styles.button}>
-                            <Text style={styles.buttonText}>{question.text}</Text>
+
+                                <View style={{ flexDirection: 'row', alignItems: 'center', }}>
+                                    <View style={{
+                                        backgroundColor: '#fff',
+                                        borderRadius: 25,
+                                        width: 33,
+                                        height: 33,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginRight: 10
+                                    }}>
+                                        <Text style={{ color: '#1D1D1D', fontSize: 16 }}>{index + 1}</Text>
+                                    </View>
+                                    <Text style={styles.buttonText}>{question.text}</Text>
+                                </View>
                             </Gradient>
                         </TouchableOpacity>
-                    ))}
-                    {renderForm()}
-                         {/* <TouchableOpacity onPress={submitFormToAPI}>
-                            <Gradient gradientUse={styles.handleButton}>
-                                <Text style={{ color: '#fff' }}>Submit</Text>
-                            </Gradient>
-                        </TouchableOpacity> */}
-                </View>
+                        {selectedQuestion === question.id && renderForm()}
+                    </View>
+                ))}
+                <Text style={styles.subHeading}>Comment</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Comment here"
+                    value={comment}
+                    placeholderTextColor="#1D1D1D"
+                    onChangeText={(text) => setComment(text)}
+                    multiline={true}
+                />
+
+                <TouchableOpacity onPress={handleFormSubmit}>
+                    <Gradient gradientUse={styles.handleButton}>
+                        <Text style={{ color: '#fff', fontSize: 16, }}>Submit</Text>
+                    </Gradient>
+                </TouchableOpacity>
+
             </SafeAreaView>
         </ScrollView>
     );
 }
 const styles = StyleSheet.create({
+    input: {
+        borderWidth: 1,
+        borderColor: '#1D1D1D',
+        color: '#1D1D1D',
+        borderRadius: 10,
+        padding: 10,
+        marginVertical: 10,
+    },
+    ratingContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: 10,
+    },
+    ratingItem: {
+        width: 40,
+        height: 40,
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: 5,
+
+    },
+    ratingText: {
+        color: '#fff',
+        fontSize: 14,
+
+    },
+    selectedRating: {
+        marginTop: 20,
+        fontSize: 18,
+    },
     container: {
         padding: 15,
-        // backgroundColor: '#fff',
         flex: 1,
     },
-    heading:{
+    headerTitle:{
+        fontSize: 19,
+        color: '#1D1D1D',
+        fontWeight: '700',
+   
+    },
+    heading: {
+        fontSize: 20,
+        color: '#1D1D1D',
+        fontFamily: 'Poppins-Regular',
+        fontWeight: '700',
+        marginVertical: 10,
+    },
+    subHeading: {
         fontSize: 18,
         color: '#1D1D1D',
         fontFamily: 'Poppins-Regular',
-        fontWeight:'600'
+        fontWeight: '700',
+        marginVertical: 10,
     },
     button: {
         backgroundColor: '#ddd',
@@ -198,16 +419,17 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontFamily: 'Poppins-Regular',
     },
-    subQuestion: {
-        fontSize: 15,
+    question: {
+        fontSize: 16,
         color: '#1D1D1D',
-        fontWeight:'600',
-        marginTop:10,
+        fontWeight: '700',
+        marginTop: 15,
+
     },
     radioGroup: {
     },
     labelSmall: {
-        fontSize: 14, 
+        fontSize: 15,
     },
 })
 export default InspectionReport;

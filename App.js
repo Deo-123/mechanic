@@ -70,12 +70,12 @@ export default function App() {
           {/* <Stack.Screen name="home" component={Home} /> */}
           <Stack.Screen name="drawer" component={DrawerNavigator} options={{ headerShown: false }} />
           <Stack.Screen name="product-detail" component={ProductDetail} options={{
-            headerTitle: 'Inspection Order Detail',
+            headerTitle: 'Inspection Job Detail',
             // headerShadowVisible: false,
             // headerTitleAlign: 'center',
           }} />
                  <Stack.Screen name="inspection-report" component={InspectionReport} options={{
-            headerTitle: 'Create inspection report',
+            headerTitle: '',
             // headerShadowVisible: false,
             // headerTitleAlign: 'center',
           }} />

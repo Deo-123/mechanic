@@ -68,7 +68,7 @@ const styles = {
     modalView: {
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: 15,
         width: 260,
         height: 180,
     },
@@ -81,8 +81,9 @@ const styles = {
         borderRadius: 30,
     },
     modalText: {
-        color: '#393939',
-        fontSize: 16,
+        color: '#1D1D1D',
+        fontFamily: 'Poppins-Regular',
+        fontSize: 15,
         textAlign: 'center',
         marginTop: 15,
     },

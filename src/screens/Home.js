@@ -30,6 +30,8 @@ export default function Home() {
   const { userData } = useAppContext();
   // const [orderData, setOrderData] = useState([]);
   const [order, setOrder] = useState([]);
+  const [orderComplete, setOrderComplete] = useState([]);
+  const [jobs, setJobs] = useState([]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -86,12 +88,11 @@ export default function Home() {
   // ];
 
   const handleNewOrder = () => {
-    setOrder(order);
-    fetchData();
+    setJobs(order);
     setActiveButton('newOrder');
   };
   const handleCompleteOrder = () => {
-    setOrder([]);
+    setJobs(orderComplete);
     setActiveButton('completeOrder');
   };
   const fetchData = async () => {
@@ -106,15 +107,35 @@ export default function Home() {
       });
       setLoading(false);
       setOrder(response.data.data);
+      setJobs(response.data.data);
     } catch (error) {
       setLoading(false);
       console.error('Error:', error.message);
     }
   };
-
+  const fetchDataComplete = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get('https://custom3.mystagingserver.site/certifires/public/api/my-completed-request-inspection-list', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      setLoading(false);
+      setOrderComplete(response.data.data);
+      console.log("cf", response.data.data);
+    } catch (error) {
+      setLoading(false);
+      console.error('Error:', error.message);
+    }
+  };
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      fetchDataComplete();
+    
       console.log(userData);
       return () => {
       };
@@ -193,7 +214,7 @@ export default function Home() {
 
           </View>
           <View style={styles.orderList}>
-            {order.map((data, index) => (
+            {jobs.map((data, index) => (
               <View key={data.id}>
                 <View style={styles.profile}>
                   <View>
@@ -207,8 +228,8 @@ export default function Home() {
                       <Text style={styles.text}>Order Amount: <Text style={{ color: '#C63A2E', fontWeight: '700' }}>${data?.amount}</Text></Text>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                      {/* { "true" == "true" && (
-                        <TouchableOpacity style={{
+                      { data?.status == "complete" && (
+                        <View style={{
                           backgroundColor: '#4caf50', borderRadius: 100,
                           paddingHorizontal: 16,
                           paddingVertical: 5,
@@ -216,9 +237,9 @@ export default function Home() {
                           alignItems: 'center',
                           marginRight: 16,
                         }}>
-                          <Text style={{ color: '#fff', fontSize: 12 }}>Verified</Text>
-                        </TouchableOpacity>
-                      )} */}
+                          <Text style={{ color: '#fff', fontSize: 12 }}>Complete</Text>
+                        </View>
+                      )}
                       <TouchableOpacity onPress={() => navigation.navigate('product-detail', { id: data?.id })}>
                         <Gradient gradientUse={[styles.button]}>
                           <Text style={{ color: '#fff', fontSize: 12 }}>Details</Text>
